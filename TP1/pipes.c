@@ -36,7 +36,7 @@ bool isPrime(int n)
 int produtor(int max)
 {
     close(pipeend[0]);
-    while (i < max + 1)
+    while (i < max)
     {
         int delta = rand() % 100;
         N = N + delta;
@@ -84,7 +84,6 @@ int main()
         {
             printf("Erro ao criar pipe\n");
         }
-
         produtor(max);
     }
     else
