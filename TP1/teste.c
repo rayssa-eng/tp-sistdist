@@ -9,8 +9,10 @@ int i = 0;
 pid_t pid;
 int pipeend[2];
 int mypipe;
-int size = 20;
-
+#define size 20
+char in[size];
+char w[size] = "Teste";
+char h[size] = "Teste2";
 bool isPrime(int n)
 {
     bool a = true;
@@ -34,33 +36,35 @@ bool isPrime(int n)
 
 int produtor(int max)
 {
+    close(pipeend[0]);
     while (i < max + 1)
     {
         int delta = rand() % 100;
         N = N + delta;
-        char w = N + '0';
-        //printf("%d num1 \n e char %c", N,w);
-
-        write(pipeend[1], &w, size);
+        //w = N + '0';
+        write(pipeend[1], w, sizeof(w));
         i++;
 
     }
     N = 0;
-    char w = N + '0';
-    write(pipeend[1], &w, size);
+    //w = N + '0';
+    write(pipeend[1], w, sizeof(w));
     printf("mandou zero");
 }
 
 int j = 0;
 int consumidor()
 {
-    char in;
-    read(pipeend[0], in, size);
-    int r = in - '0';
-    printf(in);
-    read(pipeend[0], in, size);
-    r = in - '0';
-    printf(in);
+    close(pipeend[1]);
+    printf("Começou leitura e char é %s \n", in);
+    read(pipeend[0], in, sizeof(in));
+    printf("Primeiro char é %s \n",in);
+
+    //int r = in - '0';
+    
+    read(pipeend[0], in, sizeof(in));
+    //r = in - '0';
+    printf("Segundo char é %s \n",in);
     //while (r != 0)
     //{
         //printf("%d atual \n", r);
@@ -76,17 +80,16 @@ int consumidor()
 int main()
 {
     srand(time(NULL));
-    pid = fork();
-    //printf("meu pid é %d\n", pid);
-    int max = rand() % 1000;
     mypipe = pipe(pipeend);
+    pid = fork();
+    int max = rand() % 1000;
     if (pid < 0)
     {
         printf("Erro ao criar novo processo\n");
     }
     else if (pid > 0)
     {
-        //printf("processo 1\n");
+        printf("processo 1\n");
         if (mypipe < 0)
         {
             printf("Erro ao criar pipe\n");
@@ -96,7 +99,7 @@ int main()
     }
     else
     {
-        //printf("processo 2\n");
+        printf("processo 2\n");
         consumidor();
     }
 }
