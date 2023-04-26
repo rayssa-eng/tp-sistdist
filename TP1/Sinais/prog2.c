@@ -6,26 +6,25 @@
 
 volatile sig_atomic_t flag = 0;
 
-void signal_handler(int sig) {
-    switch(sig) {
-        case SIGINT:
-            printf("Sinal SIGINT recebido.\n");
-            break;
-        case SIGTERM:
-            printf("Sinal SIGTERM recebido.\n");
-            break;
-        case SIGQUIT:
-            printf("Sinal SIGQUIT recebido.\n");
-            break;
-        case SIGTSTP:
-            printf("Sinal SIGTSTP recebido. Parando processo.\n");
-            flag = 1;
-            break;
-        default:
-            printf("Recebemos um sinal ai. Se esse sinal parar o processo, parou.\n");
-            flag = 1;
-    }
-//    flag = 1;
+void sigint_handler(int sig) {
+    printf("Sinal SIGINT recebido.\n");
+}
+
+void sigterm_handler(int sig) {
+    printf("Sinal SIGTERM recebido.\n");
+}
+
+void sigquit_handler(int sig) {
+    printf("Sinal SIGQUIT recebido.\n");
+}
+
+void sigtstp_handler(int sig) {
+    printf("Sinal SIGTSTP recebido. Mas esse eu nao aguento. Temos que parar o processo.\n");
+    exit(1);
+}
+
+void sighup_handler(int sig) {
+    printf("Sinal SIGHUP recebido.\n");
 }
 
 int main(int argc, char* argv[]) {
@@ -39,22 +38,33 @@ int main(int argc, char* argv[]) {
     struct sigaction sa;
 
     sigemptyset(&sa.sa_mask);
-    sa.sa_handler = &signal_handler; //aponta pra uma funcao signal_handler que ira ditar como o programa lida com um certo sinal
-    sa.sa_flags = 0; //sigtstp e scanf
-    sigaction(SIGTSTP, &sa, NULL); //funcao utilizada para signal handling. o ultimo parametro poderia guardar o handle
-    //anterior, mas nao fazemos questao disso
-    sigaction(SIGTERM, &sa, NULL);
+
+    sa.sa_flags = SA_RESTART; //sigtstp e scanf
+
+    sa.sa_handler = &sigint_handler; //aponta pra uma funcao signal_handler que ira ditar como o programa lida com um certo sinal
     sigaction(SIGINT, &sa, NULL);
+
+    sa.sa_handler = &sigtstp_handler;
+    sigaction(SIGTSTP, &sa, NULL); //funcao utilizada para signal handling. o ultimo parametro poderia guardar o handle
+                                                //anterior, mas nao fazemos questao disso
+    sa.sa_handler = &sigterm_handler;
+    sigaction(SIGTERM, &sa, NULL);
+
+    sa.sa_handler = &sigquit_handler;
     sigaction(SIGQUIT, &sa, NULL);
+
+    sa.sa_handler = &sighup_handler;
+    sigaction(SIGHUP, &sa, NULL);
+
 
     if (busy_type == 0) {
         // Busy waiting o sinal
         while (!flag) {
-            printf("Estamos esperando um sinal e estamos ocupadas.\n");
+            printf("Estamos esperando um sinal e estamos ocupadas. A proposito, esse eh o processo de PID %d\n", getpid());
             sleep(2);
         }
     } else {
-        printf("Estamos esperando um sinal...\n");
+        printf("Estamos esperando um sinal... A proposito, esse eh o processo de PID %d\n", getpid());
 
         //Blocking ate um sinal ser recebido
         sigsuspend(&sa.sa_mask);

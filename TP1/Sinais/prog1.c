@@ -28,16 +28,19 @@ int main(int argc, char* argv[]) {
     } else {
         int error_number = errno;
 
-        if (error_number == 22) { //EINVAL
-            printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Sinal invalido.\n", signal, pid);
-        } else if (error_number == 1) { //EPERM
-            printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Permissao negada.\n", signal, pid);
-        } else if (error_number == 3) { //ESRCH
-            printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Processo nao existe.\n", signal, pid);
-        } else {
-            printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Erro numero %d.\n", signal, pid, error_number);
+        switch(error_number) {
+            case 22:
+                printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Sinal invalido.\n", signal, pid);
+                break;
+            case 1:
+                printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Permissao negada.\n", signal, pid);
+                break;
+            case 3:
+                printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Processo nao existe.\n", signal, pid);
+                break;
+            default:
+                printf("ERRO. Nao foi possivel enviar o sinal %d ao processo de PID %d. Erro numero %d.\n", signal, pid, error_number);
         }
     }
-
     return 0;
 }
