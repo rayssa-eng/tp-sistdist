@@ -39,8 +39,8 @@ int produtor(int max)
     while (i < max)
     {
         int delta = rand() % 100;
-        N = N + delta;
         write(pipeend[1], &N, sizeof(N));
+        N = N + delta;
         i++;
     }
     N = 0;
@@ -84,6 +84,7 @@ int main()
         {
             printf("Erro ao criar pipe\n");
         }
+        max = 10;
         produtor(max);
     }
     else
