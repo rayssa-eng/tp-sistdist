@@ -15,7 +15,7 @@
 #include <netdb.h>
 
 #define BUFFLEN 1024
-#define PORT 80
+#define PORT 631
 
 void kill_on_error(const char *fmt, ...);
 
