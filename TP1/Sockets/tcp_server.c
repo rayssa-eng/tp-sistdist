@@ -13,17 +13,57 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <stdbool.h>
 
-#define PORT 631
+#define PORT 8080
 #define BUFFLEN 1024
+
+int myread;
+char ans[BUFFLEN];
+
 
 void kill_on_error(const char *fmt, ...);
 
-void main(int argc, char **argv){
-    if (argc != 2) {
-        kill_on_error("Comando: %s <server address>", argv[0]);
+bool isPrime(int n) {
+    bool a = true;
+    if (n == 0 || n == 1)
+    {
+        a = false;
     }
+    else
+    {
+        for (int i = 2; i <= n / 2; ++i)
+        {
+            if (n % i == 0)
+            {
+                a = false;
+                break;
+            }
+        }
+    }
+    return a;
+}
 
+int j = 0;
+int consumidor(int new_socket) { // recebe numero, testa se é primo, devolve resposta
+    printf("Aguardando\n");
+    //Ler string e converter para inteiro para testar no isPrime
+    //recv(new_socket, &myread, BUFFLEN, MSG_WAITALL);
+    recv(new_socket, &ans, BUFFLEN, MSG_WAITALL);
+    printf("Recebi %s", ans);
+    //while (myread != 0)
+    //{
+    //    if (isPrime(myread)) {
+    //        strcpy(ans, ("%d é primo \n", myread));
+    //    } else {
+    //        strcpy(ans, ("%d não é primo \n", myread));
+    //    }
+    //    send(new_socket, &ans, BUFFLEN, 0);
+    //    recv(new_socket, &myread, BUFFLEN, MSG_WAITALL);
+    //}
+}
+
+void main(){
     int sockfd;
     struct sockaddr_in server_addr;
 
@@ -37,10 +77,11 @@ void main(int argc, char **argv){
     printf("[+]Server Socket Created Sucessfully.\n");
     memset(&server_addr, '\0', sizeof(server_addr));
 
+    bzero(&server_addr, sizeof(server_addr));
+
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
-    server_addr.sin_addr.s_addr = inet_addr(argv[1]);
-
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     if ((bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0) { // Víncula socket ao servidor
         kill_on_error("Erro no vínculo\n");
     }
@@ -52,9 +93,8 @@ void main(int argc, char **argv){
 
     new_socket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
 
-    strcpy(buffer, "Hello");
-    send(new_socket, buffer, strlen(buffer), 0);
-    printf("[+]Closing the connection.\n");
+    printf("Conectei\n");
+    consumidor(new_socket);
 }
 
 void kill_on_error(const char *fmt, ...) {

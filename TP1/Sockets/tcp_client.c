@@ -15,19 +15,34 @@
 #include <netdb.h>
 
 #define BUFFLEN 1024
-#define PORT 631
-
+#define PORT 8080
+int N = 1;
+int i = 0;
+char res[BUFFLEN];
 void kill_on_error(const char *fmt, ...);
 
-void main(int argc, char **argv){
+int produtor(int client_socket,int max) { // produz número, envia, espera resultado, imprime
+    while (i < max + 1) {
+        int delta = rand() % 100;
+        printf("vou enviar\n");
+        //Converter N para string e enviar string
+        //send(client_socket, &N, BUFFLEN, 0);
+        send(client_socket, "Teste", BUFFLEN, 0);
+        N = N + delta;
+        printf("aguardando resposta\n");
+        //recv(client_socket, &res, BUFFLEN, MSG_WAITALL);
+        //printf("%s", res);
+        i++;
+    }
+    N = 0;
+    send(client_socket, &N, BUFFLEN, 0);
+}
+
+void main(){
 
     int client_socket;
     struct sockaddr_in server_addr;
     char buffer[BUFFLEN];
-
-    if (argc != 2) {
-        kill_on_error("Comando: %s <server address>", argv[0]);
-    }
 
     if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         kill_on_error("Erro ao criar o socket!");
@@ -35,9 +50,12 @@ void main(int argc, char **argv){
     printf("[+]Client Socket Created Sucessfully.\n");
 
     memset(&server_addr, '\0', sizeof(server_addr));
+
+    bzero(&server_addr, sizeof(server_addr));
+
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
-    server_addr.sin_addr.s_addr = inet_addr(argv[1]);
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     if (connect(client_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         kill_on_error("Erro! connect() falhou :(");
@@ -45,11 +63,10 @@ void main(int argc, char **argv){
     //connect(client_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
     printf("[+]Connected to Server.\n");
 
-    recv(client_socket, buffer, BUFFLEN, 0);
-    printf("[+]Data Recv: %s\n", buffer);
-    printf("[+]Closing the connection.\n");
-
+    int max = rand() % 1000;
+    produtor(client_socket, max);
 }
+
 
 void kill_on_error(const char *fmt, ...) {
     int errno_save;
