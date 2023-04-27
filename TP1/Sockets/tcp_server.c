@@ -15,11 +15,11 @@
 #include <netdb.h>
 #include <stdbool.h>
 
-#define PORT 8080
-#define BUFFLEN 1024
+#define PORT 2000
+#define BUFFLEN 20
 
-int myread;
-char ans[BUFFLEN];
+char* myread[BUFFLEN];
+char ans[20];
 
 
 void kill_on_error(const char *fmt, ...);
@@ -48,19 +48,28 @@ int j = 0;
 int consumidor(int new_socket) { // recebe numero, testa se é primo, devolve resposta
     printf("Aguardando\n");
     //Ler string e converter para inteiro para testar no isPrime
-    //recv(new_socket, &myread, BUFFLEN, MSG_WAITALL);
-    recv(new_socket, &ans, BUFFLEN, MSG_WAITALL);
-    printf("Recebi %s", ans);
-    //while (myread != 0)
-    //{
-    //    if (isPrime(myread)) {
-    //        strcpy(ans, ("%d é primo \n", myread));
-    //    } else {
-    //        strcpy(ans, ("%d não é primo \n", myread));
-    //    }
-    //    send(new_socket, &ans, BUFFLEN, 0);
-    //    recv(new_socket, &myread, BUFFLEN, MSG_WAITALL);
-    //}
+
+    recv(new_socket, &myread, sizeof(myread), 0);
+    //recv(new_socket, &ans, BUFFLEN, MSG_WAITALL);
+    printf("Recebi %s\n", myread);
+
+    int myread_int = atoi(myread);
+
+    printf("O numero lido apos conversao e: %d\n", myread_int);
+
+    while (myread_int != 0)
+    {
+        if (isPrime(myread_int)) {
+            strcpy(ans, ("%d prime \n", myread_int));
+        } else {
+            strcpy(ans, ("%d not prime \n", myread_int));
+        }
+        send(new_socket, &ans, sizeof(ans), 0);
+        recv(new_socket, &myread, sizeof(myread), 0);
+
+        myread_int = atoi(myread);
+    }
+    exit(0);
 }
 
 void main(){

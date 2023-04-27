@@ -14,28 +14,43 @@
 #include <fcntl.h>
 #include <netdb.h>
 
-#define BUFFLEN 1024
-#define PORT 8080
+#define BUFFLEN 20
+#define PORT 2000
 int N = 1;
+char *N_fixstr;
 int i = 0;
 char res[BUFFLEN];
 void kill_on_error(const char *fmt, ...);
 
-int produtor(int client_socket,int max) { // produz número, envia, espera resultado, imprime
+
+char* int_to_fixstr(int num, int bytes) {
+    char* str = (char*) malloc(bytes + 1); // allocate memory for string
+
+    snprintf(str, bytes + 1, "%d", num); // convert integer to string
+
+    return str; // return the string
+}
+
+int produtor(int client_socket, int max) { // produz número, envia, espera resultado, imprime
     while (i < max + 1) {
         int delta = rand() % 100;
-        printf("vou enviar\n");
+        N_fixstr = int_to_fixstr(N, 20);
+
+        printf("Vou enviar %s\n", N_fixstr);
+
         //Converter N para string e enviar string
-        //send(client_socket, &N, BUFFLEN, 0);
-        send(client_socket, "Teste", BUFFLEN, 0);
+        send(client_socket, &N_fixstr, sizeof(N_fixstr), 0);
+        //send(client_socket, "Teste", BUFFLEN, 0);
         N = N + delta;
+
         printf("aguardando resposta\n");
-        //recv(client_socket, &res, BUFFLEN, MSG_WAITALL);
-        //printf("%s", res);
+        recv(client_socket, &res, sizeof(N_fixstr), 0);
+        printf("%s", res);
         i++;
     }
-    N = 0;
-    send(client_socket, &N, BUFFLEN, 0);
+    N_fixstr = int_to_fixstr(0, 20);
+
+    send(client_socket, &N_fixstr, sizeof(N_fixstr), 0);
 }
 
 void main(){
@@ -64,6 +79,7 @@ void main(){
     printf("[+]Connected to Server.\n");
 
     int max = rand() % 1000;
+
     produtor(client_socket, max);
 }
 
