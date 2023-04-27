@@ -84,7 +84,6 @@ int main()
         {
             printf("Erro ao criar pipe\n");
         }
-        max = 10;
         produtor(max);
     }
     else
