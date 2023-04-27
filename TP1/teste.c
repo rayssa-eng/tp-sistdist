@@ -93,6 +93,7 @@ int main() {
         printf("Erro ao criar novo processo\n");
     } else if (pid > 0) {
         printf("P1. Eu sou o pai, meu pid é %d\n", getpid());
+
         server.sin_family = AF_INET;
         server.sin_addr.s_addr = htonl(INADDR_ANY);
         server.sin_port = htons(PORT);
@@ -108,9 +109,10 @@ int main() {
     } else {
         printf("P2. Eu sou o filho, meu pid é %d\n", getpid());
         len = sizeof(client);
+
         connection = accept(sockid, (struct sockaddr *)&client, (socklen_t *)&len); // Tenta conectar cliente ao servidor
 
-        //printf("%d\n", connection);
+        printf("%d\n", connection);
 
         if (connection < 0) {
             printf("Erro %d ao aceitar cliente\n", errno);
