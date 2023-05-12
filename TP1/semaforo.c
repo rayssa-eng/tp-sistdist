@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 #define NUMCONS 1
-#define NUMPROD 2
+#define NUMPROD 8
 #define BUFFERSIZE 1000
 
 pthread_t cons[NUMCONS];
