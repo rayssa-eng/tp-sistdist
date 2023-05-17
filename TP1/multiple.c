@@ -6,7 +6,7 @@
 #define LOCK_FILE "/tmp/sem_lock_file"
 
 int main() {
-    int n = 10; // Número de terminais a serem abertos
+    int n = 1; // Número de terminais a serem abertos
     for (int i = 0; i < n; i++) {
         // Verificar se o arquivo de bloqueio existe
         int lock_file = open(LOCK_FILE, O_CREAT | O_EXCL, 0);

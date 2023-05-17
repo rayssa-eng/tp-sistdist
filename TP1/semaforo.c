@@ -4,6 +4,8 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <math.h>
+#include <time.h>
 
 #define NUMCONS 1
 #define NUMPROD 8
@@ -15,7 +17,8 @@ pthread_mutex_t mutex;
 int buffer[BUFFERSIZE];
 int currentidx;
 int consumed = 0;
-clock_t begin;
+clock_t start, end;
+double cpu_time_used;
 sem_t full, empty;
 
 bool isPrime(int n)
@@ -27,7 +30,7 @@ bool isPrime(int n)
     }
     else
     {
-        for (int i = 2; i <= n / 2; ++i)
+        for (int i = 2; i <= pow(n,1/2); ++i)
         {
             if (n % i == 0)
             {
@@ -74,16 +77,17 @@ void *consumidor(void *arg)
         consumed++;
         if (isPrime(n))
         {
-            printf("%d é primo \n", n);
+            //printf("%d é primo \n", n);
         }
         else
         {
-            printf("%d não é primo \n", n);
+            //printf("%d não é primo \n", n);
         }
+        printf("%d \n", currentidx);
         if (consumed == 100000){
-            clock_t end = clock();
-            double dur = (double)(end - begin) / CLOCKS_PER_SEC;
-            printf("Foram utilizados %d produtores, %d consumidores, %d posições no buffer e a duração foi de %f segundos \n",NUMPROD, NUMCONS,BUFFERSIZE, dur);
+            end = clock();
+            cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+            printf("Foram utilizados %d produtores, %d consumidores, %d posições no buffer e a duração foi de %f segundos \n",NUMPROD, NUMCONS,BUFFERSIZE, cpu_time_used);
             exit(0);
         }
     }
@@ -92,7 +96,7 @@ void *consumidor(void *arg)
 int main(int argc, char **argv)
 {
     int i;
-    begin = clock();
+    start = clock();
     pthread_mutex_init(&mutex, NULL);
     sem_init(&full, 0, BUFFERSIZE);
     sem_init(&empty, 0, 0);
