@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <errno.h>
 
-#define K 64 // número de threads
-#define N 10000000 // tamanho do vetor
+#define K 256 // número de threads
+#define N 1000000000 // tamanho do vetor
 #define MAX 100 // numero aleatorio maximo
 #define MIN -100 // numero aleatorio minimo
 
@@ -87,7 +87,7 @@ int main() {
     char fileName[50];
 
     // formatando o nome do arquivo a ser gerado
-    sprintf(fileName, "n_7_k_%d.csv", K);
+    sprintf(fileName, "n_9_k_%d.csv", K);
 
     file = fopen(fileName, "w"); // Open the file in write mode ("w")
     int x = 0;
