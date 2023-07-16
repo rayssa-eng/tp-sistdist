@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -5,78 +6,109 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-   
+#include <time.h>
+#include <errno.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 #define PORT 8080
 #define MAXLINE 1024
 #define SIZE 10
 #define r 10
 #define k 4
 
-int sockfd;
+int sockfd, connfd;
 int myId;
-char id[2];
-char msg[SIZE];
+char id[4];
+struct sockaddr_in servaddr, cli;
 
-// Driver code
+void my_run();
+int get_access();
+
 int main() {
     myId = getpid();
-    itoa(myId, id, 10);
-    
-     const char *request = strcat("1", id);
-    const char *grant = strcat("2", id);
-    const char *release = strcat("3", id);
+    sprintf(id, "%d", myId);
+    const char *request = "1";
+    const char *grant = "2";
+    const char *release = "3";
+    char request_id[SIZE];
+    char grant_id[SIZE];
+    char release_id[SIZE];
+    strcpy(request_id, request);
+    strcpy(grant_id, grant);
+    strcpy(release_id, release);
 
-    struct sockaddr_in     servaddr;
-    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+    strcat(request_id, id);
+    strcat(grant_id, id);
+    strcat(release_id, id);
+    
+    printf("id: %s, request: %s, grant: %s, release: %s \n",id,request_id,grant_id,release_id);
+
+    socklen_t len = sizeof(servaddr);
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
-    memset(&servaddr, 0, sizeof(servaddr));  
+    
+    bzero(&servaddr, sizeof(servaddr)); 
     servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
+    
+     if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1) {
+        perror("connection with the server failed...\n");
+        exit(EXIT_FAILURE);
+    }
+    
     my_run();
+    
+    return 0;
 }
 
-int get_acess()
-{
-    sendto(sockfd, (const char *)request, strlen(request),
-        MSG_CONFIRM, (const struct sockaddr *) &servaddr, 
-            sizeof(servaddr));
+int get_access() {
+    char buffer[MAXLINE];
+    const char *request = "1";
+    const char *grant = "2";
+    char request_id[SIZE];
+    char grant_id[SIZE];
+    strcpy(request_id, request);
+    strcpy(grant_id, grant);
+    strcat(request_id, id);
+    strcat(grant_id, id);
+    sendto(sockfd, request_id, strlen(request_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+    socklen_t len = sizeof(servaddr); // Correção adicionada aqui
     int msg;
-    msg = recvfrom(sockfd, (char *)buffer, MAXLINE, 
-                MSG_WAITALL, (struct sockaddr *) &servaddr,
-                &len);
-    if (buffer==grant)
-    {
+    msg = recvfrom(sockfd, buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
+    buffer[msg] = '\0';
+    
+    if (strcmp(buffer, grant_id) == 0) {
         return 1;
-    }
-    else
-    {
+    } else {
         return -1;
     }
 }
 
-void my_run()
-{ int i = 0;
-    while (i<r){
-    if (get_acess == 1)
-    {
-        //abre arquivo
-        myFile = fopen("resultado.txt", "a");
-        //escreve hora + pid
-        time_t current_time;
-        char* c_time_string;
-        current_time = time(NULL);
-        c_time_string = ctime(&current_time);
-        fprintf(myFile, "%d %s", id, c_time_string);
-        //fecha arquivo
-        fclose(myFile);
+void my_run() {
+    int i = 0;
+    FILE *myFile;
+    char release_id[SIZE]; // Declaração adicionada aqui
+    strcpy(release_id, "3");
+    strcat(release_id, id);   
 
-        sleep(k);
-        sendto(sockfd, (const char *)release, strlen(release),
-        MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
-        i++;
-    }
+    socklen_t len = sizeof(servaddr);
+    while (i < r) {
+        if (get_access() == 1) {
+            myFile = fopen("resultado.txt", "a");
+            time_t current_time;
+            char *c_time_string;
+            current_time = time(NULL);
+            c_time_string = ctime(&current_time);
+            fprintf(myFile, "%s %s", id, c_time_string);
+            fclose(myFile);
+
+            sleep(k);
+            sendto(sockfd, release_id, strlen(release_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+            i++;
+        }
     }
 }
