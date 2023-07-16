@@ -11,7 +11,7 @@
 
 // Structure for request information
 struct Request {
-    int process_id;
+    char process_id[9];
     int client_socket;
 };
 
@@ -39,7 +39,7 @@ void enqueueRequest(struct Request request) {
     }
 
     requestQueue[rear] = request;
-
+    printf("%s \n", requestQueue[0].process_id);
     pthread_cond_signal(&queueNotEmptyCond);
     pthread_mutex_unlock(&queueMutex);
 }
@@ -65,26 +65,47 @@ struct Request dequeueRequest() {
     return request;
 }
 
-void grant_lock(int client_socket) {
+void grant_lock(struct Request request) {
     char buffer[MAX_BUFFER_SIZE];
-    sprintf(buffer, "GRANT");
-    printf("granted");
+    int client_socket = request.client_socket;
+    char id[9];
+    strcpy(id, request.process_id);
+    char msg[10];
+    strcpy(msg, "2");
+    strcat(msg,id);
+    sprintf(buffer, "%s", msg);    
+    printf("granted for %s \n", id);
     // Send grant message to the requesting client
     send(client_socket, buffer, strlen(buffer), 0);
+    dequeueRequest();
+}
+
+void moveQueue(){
+    grant_lock(requestQueue[0]);
 }
 
 void* handle_client(void* arg) {
+    printf("created");
     struct Request request = *(struct Request*)arg;
     int client_socket = request.client_socket;
+    char buffer[MAX_BUFFER_SIZE];
+    char test[10] = "1111111111";
 
-    // Process the request and send grant
-    grant_lock(client_socket);
-
-    // Clean up the client connection
-    close(client_socket);
-    free(arg);
-
-    pthread_exit(NULL);
+    while (true){
+        printf("handleclient");
+        int bytes_received = recv(client_socket, buffer, MAX_BUFFER_SIZE, 0);
+        buffer[bytes_received] = '\0';
+        printf("%s recebido\n", buffer);
+        // Check the request message
+        int num = strncmp(buffer, test, 1);
+        if (strncmp(buffer, test, 1) != 0) { 
+            perror("Mensagem de solicitação inválida!");
+            //free(request);
+            //close(client_sock);
+            continue;
+        }
+        enqueueRequest(request);
+    }
 }
 
 int main() {
@@ -117,6 +138,8 @@ int main() {
 
     pthread_t threadID;
 
+    pthread_create(&threadID, NULL, moveQueue, NULL);
+
     // Start the distributed mutual exclusion algorithm
     while (true) {
         // Accept a client connection
@@ -137,17 +160,16 @@ int main() {
         buffer[bytes_received] = '\0';
         printf("%s recebido\n", buffer);
         // Check the request message
-        if (strncmp(buffer, test, 1) != 0) { {
+        int num = strncmp(buffer, test, 1);
+        if (strncmp(buffer, test, 1) != 0) { 
             perror("Mensagem de solicitação inválida!");
             free(request);
             close(client_sock);
             continue;
         }
-        printf("Recebido %s \n", buffer);
         char process_id[9];
         strcpy(process_id, buffer + 1);
-        request -> process_id = process_id;
-
+        strcpy(request->process_id, process_id);
         enqueueRequest(*request);  // Add the request to the queue
 
         if (pthread_create(&threadID, NULL, handle_client, (void*)request) != 0) {
@@ -163,4 +185,4 @@ int main() {
     close(coordinator_sock);
 
     return 0;
-}}
+}

@@ -66,6 +66,7 @@ int main() {
 }
 
 int get_access() {
+    printf("getacess \n");
     char buffer[MAXLINE];
     const char *request = "1";
     const char *grant = "2";
@@ -75,12 +76,14 @@ int get_access() {
     strcpy(grant_id, grant);
     strcat(request_id, id);
     strcat(grant_id, id);
+    printf("premsg \n");
     sendto(sockfd, request_id, strlen(request_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
     socklen_t len = sizeof(servaddr); // Correção adicionada aqui
     int msg;
+    printf("prerecv \n");
     msg = recvfrom(sockfd, buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
     buffer[msg] = '\0';
-    
+    printf("buf: %s, gid = %s \n", buffer, grant_id);
     if (strcmp(buffer, grant_id) == 0) {
         return 1;
     } else {
@@ -97,7 +100,9 @@ void my_run() {
 
     socklen_t len = sizeof(servaddr);
     while (i < r) {
-        if (get_access() == 1) {
+        printf("i = %d \n", i);
+        int access = get_access();
+        if (access == 1) {
             myFile = fopen("resultado.txt", "a");
             time_t current_time;
             char *c_time_string;
@@ -109,6 +114,7 @@ void my_run() {
             sleep(k);
             sendto(sockfd, release_id, strlen(release_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
             i++;
+            printf("i = %d, r = %d \n", i,r);
         }
     }
 }
