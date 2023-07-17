@@ -9,18 +9,18 @@
 #define COORDINATOR_PORT 8080
 #define MAX_BUFFER_SIZE 1024
 
-// Structure for request information
+// Estrutura para informações de solicitação
 struct Request {
     char process_id[9];
     int client_socket;
 };
 
-// Circular queue for storing requests
+// Fila circular para armazenar solicitações
 struct Request requestQueue[100];
 int front = -1;
 int rear = -1;
 
-// Mutex and condition variables for synchronization
+// Mutex e variáveis de condição para sincronização
 pthread_mutex_t queueMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queueNotEmptyCond = PTHREAD_COND_INITIALIZER;
 
@@ -39,7 +39,7 @@ void enqueueRequest(struct Request request) {
     }
 
     requestQueue[rear] = request;
-    printf("%s \n", requestQueue[0].process_id);
+    //printf("%s \n", requestQueue[0].process_id);
     pthread_cond_signal(&queueNotEmptyCond);
     pthread_mutex_unlock(&queueMutex);
 }
@@ -74,37 +74,38 @@ void grant_lock(struct Request request) {
     strcpy(msg, "2");
     strcat(msg,id);
     sprintf(buffer, "%s", msg);    
-    printf("granted for %s \n", id);
-    // Send grant message to the requesting client
+    //printf("granted for %s \n", id);
+    // Envie a mensagem de concessão para o cliente solicitante
     send(client_socket, buffer, strlen(buffer), 0);
     dequeueRequest();
 }
 
-void moveQueue(){
-    grant_lock(requestQueue[0]);
+void* moveQueue() {
+    while (true){
+    if (!isQueueEmpty()) {
+        grant_lock(requestQueue[0]);
+    }
+    }
 }
 
 void* handle_client(void* arg) {
-    printf("created");
+    //printf("created");
     struct Request request = *(struct Request*)arg;
     int client_socket = request.client_socket;
     char buffer[MAX_BUFFER_SIZE];
     char test[10] = "1111111111";
 
-    while (true){
-        printf("handleclient");
+    while (true) {
+        //printf("handleclient \n");
         int bytes_received = recv(client_socket, buffer, MAX_BUFFER_SIZE, 0);
         buffer[bytes_received] = '\0';
-        printf("%s recebido\n", buffer);
-        // Check the request message
+        //printf("%s recebido\n", buffer);
+        // Verifique a mensagem de solicitação
         int num = strncmp(buffer, test, 1);
-        if (strncmp(buffer, test, 1) != 0) { 
-            perror("Mensagem de solicitação inválida!");
-            //free(request);
-            //close(client_sock);
-            continue;
+        if (strncmp(buffer, test, 1) == 0) { 
+            enqueueRequest(request);
         }
-        enqueueRequest(request);
+        
     }
 }
 
@@ -113,24 +114,24 @@ int main() {
     struct sockaddr_in coordinator_addr, client_addr;
     socklen_t client_addr_len;
 
-    // cria o socket TCP do coordenador
+    // Cria o socket TCP do coordenador
     if ((coordinator_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Falha na criação do socket...");
         exit(EXIT_FAILURE);
     }
 
-    // incorpora endereco do coordenador
+    // Incorpora endereço do coordenador
     coordinator_addr.sin_family = AF_INET;
     coordinator_addr.sin_port = htons(COORDINATOR_PORT);
     coordinator_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    // bind pro endereço do coordenador
+    // Faz o bind para o endereço do coordenador
     if (bind(coordinator_sock, (struct sockaddr*)&coordinator_addr, sizeof(coordinator_addr)) == -1) {
         perror("Falha no binding...");
         exit(EXIT_FAILURE);
     }
 
-    // Listen for incoming client connections
+    // Aguarda conexões de clientes
     if (listen(coordinator_sock, 5) == -1) {
         perror("Falha no listen...");
         exit(EXIT_FAILURE);
@@ -138,28 +139,26 @@ int main() {
 
     pthread_t threadID;
 
-    pthread_create(&threadID, NULL, moveQueue, NULL);
-
-    // Start the distributed mutual exclusion algorithm
+    // Inicia o algoritmo de exclusão mútua distribuída
     while (true) {
-        // Accept a client connection
+        // Aceita uma conexão de cliente
         client_sock = accept(coordinator_sock, (struct sockaddr*)&client_addr, &client_addr_len);
         if (client_sock == -1) {
             perror("Falha no ACCEPT!");
             continue;
         }
 
-        // Create a new thread to handle the client request
+        // Cria uma nova thread para lidar com a solicitação do cliente
         struct Request* request = (struct Request*)malloc(sizeof(struct Request));
         request->client_socket = client_sock;
 
-        // Receive request message from the client
+        // Recebe a mensagem de solicitação do cliente
         char buffer[MAX_BUFFER_SIZE];
         char test[10] = "1111111111";
         int bytes_received = recv(client_sock, buffer, MAX_BUFFER_SIZE, 0);
         buffer[bytes_received] = '\0';
-        printf("%s recebido\n", buffer);
-        // Check the request message
+        //printf("%s recebido\n", buffer);
+        // Verifique a mensagem de solicitação
         int num = strncmp(buffer, test, 1);
         if (strncmp(buffer, test, 1) != 0) { 
             perror("Mensagem de solicitação inválida!");
@@ -170,7 +169,7 @@ int main() {
         char process_id[9];
         strcpy(process_id, buffer + 1);
         strcpy(request->process_id, process_id);
-        enqueueRequest(*request);  // Add the request to the queue
+        enqueueRequest(*request);  // Adiciona a solicitação à fila
 
         if (pthread_create(&threadID, NULL, handle_client, (void*)request) != 0) {
             perror("Falha ao criar thread!");
@@ -180,6 +179,8 @@ int main() {
         }
 
         pthread_detach(threadID);
+        pthread_create(&threadID, NULL, moveQueue, NULL);
+
     }
 
     close(coordinator_sock);

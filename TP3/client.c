@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdbool.h>
+#define MAX_BUFFER_SIZE 1024
 
 #define PORT 8080
 #define MAXLINE 1024
@@ -42,7 +43,7 @@ int main() {
     strcat(grant_id, id);
     strcat(release_id, id);
     
-    printf("id: %s, request: %s, grant: %s, release: %s \n",id,request_id,grant_id,release_id);
+    //printf("id: %s, request: %s, grant: %s, release: %s \n",id,request_id,grant_id,release_id);
 
     socklen_t len = sizeof(servaddr);
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -66,7 +67,7 @@ int main() {
 }
 
 int get_access() {
-    printf("getacess \n");
+    //printf("getacess \n");
     char buffer[MAXLINE];
     const char *request = "1";
     const char *grant = "2";
@@ -76,14 +77,16 @@ int get_access() {
     strcpy(grant_id, grant);
     strcat(request_id, id);
     strcat(grant_id, id);
-    printf("premsg \n");
-    sendto(sockfd, request_id, strlen(request_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+    //printf("premsg \n");
+    //send(sockfd, request_id, strlen(request_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+    send(sockfd, request_id, strlen(request_id), 0);
     socklen_t len = sizeof(servaddr); // Correção adicionada aqui
     int msg;
-    printf("prerecv \n");
-    msg = recvfrom(sockfd, buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
+    //printf("prerecv \n");
+    //msg = recvfrom(sockfd, buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
+    msg = recv(sockfd, buffer,MAX_BUFFER_SIZE,0);
     buffer[msg] = '\0';
-    printf("buf: %s, gid = %s \n", buffer, grant_id);
+    //printf("buf: %s, gid = %s \n", buffer, grant_id);
     if (strcmp(buffer, grant_id) == 0) {
         return 1;
     } else {
@@ -100,7 +103,7 @@ void my_run() {
 
     socklen_t len = sizeof(servaddr);
     while (i < r) {
-        printf("i = %d \n", i);
+        //printf("i = %d \n", i);
         int access = get_access();
         if (access == 1) {
             myFile = fopen("resultado.txt", "a");
@@ -114,7 +117,7 @@ void my_run() {
             sleep(k);
             sendto(sockfd, release_id, strlen(release_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
             i++;
-            printf("i = %d, r = %d \n", i,r);
+            //printf("i = %d, r = %d \n", i,r);
         }
     }
 }
