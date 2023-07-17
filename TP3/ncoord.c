@@ -124,10 +124,57 @@ void* handle_client(void* arg) {
     }
 }
 
+void* process_commands(void* arg) {
+    char command[100];
+    while (true) {
+        printf("Digite um comando - 1 para ver a fila de request, 2 para ver o numero de vezes que um processo foi atendido e 3 para encerrar esse processo: ");
+        fgets(command, sizeof(command), stdin);
+
+        // Remove the newline character from the command
+        command[strcspn(command, "\n")] = '\0';
+
+        if (strcmp(command, "1") == 0) {
+            // Print the current request queue
+            pthread_mutex_lock(&queueMutex);
+            printf("Processos em fila de Request:\n");
+            
+            if (isQueueEmpty()) {
+                printf("Empty\n");
+            } else {
+                int i = front;
+                do {
+                    printf("Process ID: %s\n", requestQueue[i].process_id);
+                    i = (i + 1) % 100;
+                } while (i != (rear + 1) % 100);
+            }
+
+            pthread_mutex_unlock(&queueMutex);
+        } else if (strcmp(command, "2") == 0) {
+            // Print the number of times a client process had a request answered
+            
+
+            // Implement the logic to track the number of times a client process had a request answered
+            // You can use a separate data structure or add a counter variable for each client process
+        } else if (strcmp(command, "3") == 0) {
+            // Quit the coordinator process
+            fclose(log_file);
+            exit(EXIT_SUCCESS);
+        } else {
+            printf("Comando invalido. Escolha 1, 2 ou 3.\n");
+        }
+    }
+}
+
 int main() {
     int coordinator_sock, client_sock;
     struct sockaddr_in coordinator_addr, client_addr;
     socklen_t client_addr_len;
+
+    log_file = fopen("log.txt", "a");
+    if (log_file == NULL) {
+        perror("Failed to open log file");
+        exit(EXIT_FAILURE);
+    }
 
     // Cria o socket TCP do coordenador
     if ((coordinator_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -151,6 +198,13 @@ int main() {
         perror("Falha no listen...");
         exit(EXIT_FAILURE);
     }
+
+    pthread_t command_thread;
+    if (pthread_create(&command_thread, NULL, process_commands, NULL) != 0) {
+        perror("Failed to create command thread");
+        exit(EXIT_FAILURE);
+    }
+    // pthread_join(command_thread, NULL);
 
     pthread_t threadID;
 
@@ -193,12 +247,17 @@ int main() {
             continue;
         }
 
+       
+
         pthread_detach(threadID);
         pthread_create(&threadID, NULL, moveQueue, NULL);
+
+
 
     }
 
     close(coordinator_sock);
+    fclose(log_file);
 
     return 0;
 }
