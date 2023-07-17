@@ -2,14 +2,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/time.h>
 #include <time.h>
-#include <errno.h>
 #include <stddef.h>
-#include <stdbool.h>
 #define MAX_BUFFER_SIZE 1024
 
 #define PORT 8080
@@ -20,7 +18,7 @@
 
 int sockfd, connfd;
 int myId;
-char id[4];
+char id[10];
 struct sockaddr_in servaddr, cli;
 
 void my_run();
@@ -108,10 +106,18 @@ void my_run() {
         if (access == 1) {
             myFile = fopen("resultado.txt", "a");
             time_t current_time;
+            struct timeval tv;
             char *c_time_string;
+            char formatted_time[100];  // Buffer to store formatted time
             current_time = time(NULL);
+            gettimeofday(&tv, NULL);
             c_time_string = ctime(&current_time);
-            fprintf(myFile, "%s %s", id, c_time_string);
+
+// Format the time string with milliseconds and year
+            strftime(formatted_time, sizeof(formatted_time), "%a %b %d %H:%M:%S:", localtime(&current_time));
+            sprintf(formatted_time + strlen(formatted_time), "%03ld %04d\n", tv.tv_usec / 1000, localtime(&current_time)->tm_year + 1900);  // Append milliseconds and year
+
+            fprintf(myFile, "%s %s", id, formatted_time);
             fclose(myFile);
 
             sleep(k);
