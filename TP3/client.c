@@ -113,7 +113,7 @@ void my_run() {
             gettimeofday(&tv, NULL);
             c_time_string = ctime(&current_time);
 
-// Format the time string with milliseconds and year
+            // Format the time string with milliseconds and year
             strftime(formatted_time, sizeof(formatted_time), "%a %b %d %H:%M:%S:", localtime(&current_time));
             sprintf(formatted_time + strlen(formatted_time), "%03ld %04d\n", tv.tv_usec / 1000, localtime(&current_time)->tm_year + 1900);  // Append milliseconds and year
 
