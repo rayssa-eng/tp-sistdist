@@ -9,19 +9,19 @@
 #define COORDINATOR_PORT 8080
 #define MAX_BUFFER_SIZE 1024
 
-FILE* log_file; 
+// FILE* log_file; 
 
-void log_message(const char* message_type, const char* process_id) {
-    // Get the current timestamp
-    time_t current_time;
-    time(&current_time);
-    char timestamp[20];
-    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&current_time));
+// void log_message(const char* message_type, const char* process_id) {
+//     // Get the current timestamp
+//     time_t current_time;
+//     time(&current_time);
+//     char timestamp[20];
+//     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&current_time));
 
-    // Print the log entry to the log file
-    fprintf(log_file, "%s %s %s\n", timestamp, message_type, process_id);
-    fflush(log_file);
-}
+//     // Print the log entry to the log file
+//     fprintf(log_file, "%s %s %s\n", timestamp, message_type, process_id);
+//     fflush(log_file);
+// }
 
 
 // Estrutura para informações de solicitação
@@ -157,7 +157,7 @@ void* process_commands(void* arg) {
             // You can use a separate data structure or add a counter variable for each client process
         } else if (strcmp(command, "3") == 0) {
             // Quit the coordinator process
-            fclose(log_file);
+            // fclose(log_file);
             exit(EXIT_SUCCESS);
         } else {
             printf("Comando invalido. Escolha 1, 2 ou 3.\n");
@@ -169,12 +169,6 @@ int main() {
     int coordinator_sock, client_sock;
     struct sockaddr_in coordinator_addr, client_addr;
     socklen_t client_addr_len;
-
-    log_file = fopen("log.txt", "a");
-    if (log_file == NULL) {
-        perror("Failed to open log file");
-        exit(EXIT_FAILURE);
-    }
 
     // Cria o socket TCP do coordenador
     if ((coordinator_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -199,14 +193,8 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    pthread_t command_thread;
-    if (pthread_create(&command_thread, NULL, process_commands, NULL) != 0) {
-        perror("Failed to create command thread");
-        exit(EXIT_FAILURE);
-    }
-    // pthread_join(command_thread, NULL);
-
     pthread_t threadID;
+    pthread_t command_thread;
 
     // Inicia o algoritmo de exclusão mútua distribuída
     while (true) {
@@ -247,17 +235,18 @@ int main() {
             continue;
         }
 
-       
-
         pthread_detach(threadID);
         pthread_create(&threadID, NULL, moveQueue, NULL);
-
-
+        if (pthread_create(&command_thread, NULL, process_commands, NULL) != 0) {
+            perror("Failed to create command thread");
+            exit(EXIT_FAILURE);
+        }
+        
+        // pthread_join(command_thread, NULL);
 
     }
 
     close(coordinator_sock);
-    fclose(log_file);
 
     return 0;
 }
