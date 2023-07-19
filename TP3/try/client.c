@@ -43,7 +43,10 @@ int main() {
     strcat(grant_id, id);
     strcat(release_id, id);
     
+<<<<<<< HEAD:TP3/try/client.c
     
+=======
+>>>>>>> 73d981f66a014bdc749ea5ab0d24e2502bff65e2:TP3/client.c
     socklen_t len = sizeof(servaddr);
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket creation failed");
@@ -69,7 +72,6 @@ int main() {
 }
 
 int get_access() {
-    //printf("getacess \n");
     char buffer[MAXLINE];
     const char *request = "1";
     const char *grant = "2";
@@ -79,12 +81,11 @@ int get_access() {
     strcpy(grant_id, grant);
     strcat(request_id, id);
     strcat(grant_id, id);
-    //printf("premsg \n");
-    //send(sockfd, request_id, strlen(request_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
     send(sockfd, request_id, strlen(request_id), 0);
+    printf(" \n Mensagem enviada request: %s\n", request_id);
+
     socklen_t len = sizeof(servaddr); // Correção adicionada aqui
     int msg;
-    //printf("prerecv \n");
     //msg = recvfrom(sockfd, buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
     msg = recv(sockfd, buffer,MAX_BUFFER_SIZE,0);
     buffer[msg] = '\0';
@@ -136,6 +137,7 @@ double get_elapsed_time(const char* filename) {
 void my_run() {
     int i = 0;
     FILE *myFile;
+<<<<<<< HEAD:TP3/try/client.c
     char release_id[SIZE]; // Declaração adicionada aqui
     strcpy(release_id, "3");
     strcat(release_id, id);  
@@ -143,10 +145,17 @@ void my_run() {
     // Record the start time
     time_t start_time;
     time(&start_time); 
+=======
+    myId = getpid();
+    sprintf(id, "%d", myId);
+    const char *release = "3";
+    char release_id[SIZE];
+    strcpy(release_id, release);
+    strcat(release_id, id);
+>>>>>>> 73d981f66a014bdc749ea5ab0d24e2502bff65e2:TP3/client.c
 
     socklen_t len = sizeof(servaddr);
     while (i < r) {
-        //printf("i = %d \n", i);
         int access = get_access();
         if (access == 1) {
             myFile = fopen("resultado.txt", "a");
@@ -166,9 +175,9 @@ void my_run() {
             fclose(myFile);
 
             sleep(k);
-            sendto(sockfd, release_id, strlen(release_id), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+            send(sockfd, release_id, strlen(release_id), 0);
+            printf("\n Mensagem enviada release: %s\n", release_id);
             i++;
-            //printf("i = %d, r = %d \n", i,r);
         }
     }
 
