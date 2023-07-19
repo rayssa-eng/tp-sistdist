@@ -1,6 +1,6 @@
 import socket
 import os
-from time import sleep
+import time
 from datetime import datetime
 
 REQUEST = 1
@@ -10,12 +10,12 @@ RELEASE = 3
 HOST = "127.0.0.1"
 PORT = 8080
 
-r = 10
-k = 2
+r = 3
+k = 0
 
 def write_on_results(pid):
     with open('results.txt', 'a') as fp:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
         fp.write(f'{pid} {timestamp}\n')
 
 def padding(code, pid):
@@ -40,10 +40,10 @@ def main():
 
             write_on_results(my_pid)
 
-            sleep(k)
-
             skt.sendall(release_message.encode('utf8'))
             print(f"{my_pid} enviou release")
+
+            time.sleep(k)
 
         skt.close()
         exit()

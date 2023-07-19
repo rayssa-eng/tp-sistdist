@@ -97,7 +97,7 @@ def handle_client_msg(conn):
                 
 def shell():
     while True:
-        args = input('shell> ' ).strip().split()
+        args = input('Oi! Comandos disponiveis:\n 1 - Ver a fila\n 2 - Ver quantas vezes um processo de sua escolha foi atendido\n 3 - Encerrar programa.\nshell> ' ).strip().split()
 
         if (len(args) != 1):
             print("Erro. Digite de novo.")
@@ -137,6 +137,9 @@ def create_thread(conn):
 
 def main():
     with open('results.txt', 'w') as fp:
+        fp.write('')
+
+    with open('log_coord.txt', 'w') as fp:
         fp.write('')
 
     shell_thread = threading.Thread(target=shell)

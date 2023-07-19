@@ -11,7 +11,7 @@ if len(sys.argv) != 2:
 executable = "client.py"  # Replace with the actual path to your C executable
 file_path = './results.txt'  # Replace with the actual path to your text file
 n = int(sys.argv[1])  # Number of times to execute the executable
-r = 10
+r = 3
 
 def line_piece_to_string():
     #  Read the specified line from the file
@@ -22,11 +22,11 @@ def line_piece_to_string():
 
     # Convert the line into a character vector
     first_line_vector = list(first_line_piece)
-    first_ts_vector = [first_line_vector[len(first_line_vector) - 17], first_line_vector[len(first_line_vector) - 16], first_line_vector[len(first_line_vector) - 15], first_line_vector[len(first_line_vector) - 14], first_line_vector[len(first_line_vector) - 13], first_line_vector[len(first_line_vector) - 12], first_line_vector[len(first_line_vector) - 11], first_line_vector[len(first_line_vector) - 10], first_line_vector[len(first_line_vector) - 9], first_line_vector[len(first_line_vector) - 8], first_line_vector[len(first_line_vector) - 7], first_line_vector[len(first_line_vector) - 6]]
+    first_ts_vector = [first_line_vector[len(first_line_vector) - 15], first_line_vector[len(first_line_vector) - 14], first_line_vector[len(first_line_vector) - 13], first_line_vector[len(first_line_vector) - 12], first_line_vector[len(first_line_vector) - 11], first_line_vector[len(first_line_vector) - 10], first_line_vector[len(first_line_vector) - 9], first_line_vector[len(first_line_vector) - 8], first_line_vector[len(first_line_vector) - 7], first_line_vector[len(first_line_vector) - 6], first_line_vector[len(first_line_vector) - 5], first_line_vector[len(first_line_vector) - 4], first_line_vector[len(first_line_vector) - 3], first_line_vector[len(first_line_vector) - 2], first_line_vector[len(first_line_vector) - 1]]
     first_ts_string = "".join(first_ts_vector)
 
     last_line_vector = list(last_line_piece)
-    last_ts_vector = [last_line_vector[len(last_line_vector) - 17], last_line_vector[len(last_line_vector) - 16], last_line_vector[len(last_line_vector) - 15], last_line_vector[len(last_line_vector) - 14], last_line_vector[len(last_line_vector) - 13], last_line_vector[len(last_line_vector) - 12], last_line_vector[len(last_line_vector) - 11], last_line_vector[len(last_line_vector) - 10], last_line_vector[len(last_line_vector) - 9], last_line_vector[len(last_line_vector) - 8], last_line_vector[len(last_line_vector) - 7], last_line_vector[len(last_line_vector) - 6]]
+    last_ts_vector = [last_line_vector[len(last_line_vector) - 15], last_line_vector[len(last_line_vector) - 14], last_line_vector[len(last_line_vector) - 13], last_line_vector[len(last_line_vector) - 12], last_line_vector[len(last_line_vector) - 11], last_line_vector[len(last_line_vector) - 10], last_line_vector[len(last_line_vector) - 9], last_line_vector[len(last_line_vector) - 8], last_line_vector[len(last_line_vector) - 7], last_line_vector[len(last_line_vector) - 6], last_line_vector[len(last_line_vector) - 5], last_line_vector[len(last_line_vector) - 4], last_line_vector[len(last_line_vector) - 3], last_line_vector[len(last_line_vector) - 2], last_line_vector[len(last_line_vector) - 1]]
     last_ts_string = "".join(last_ts_vector)
 
     return [first_ts_string, last_ts_string]
@@ -73,7 +73,8 @@ while (True):
         print("Maximum number of retries reached. File not found.")
         
     if (len(lines) == n*r):
-        print(f"Já tem {n*r} linhas no arquivo. Calculemos o tempo decorrido entre a primeira e a segunda linhas:\n")
+        # time.sleep(2)
+        print(f"\nJá tem {n*r} linhas no arquivo. Calculemos o tempo decorrido entre a primeira e a segunda linhas:\n")
 
         break
 
