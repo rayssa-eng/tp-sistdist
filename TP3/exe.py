@@ -8,8 +8,8 @@ if len(sys.argv) != 2:
     print(f"Uso: python {sys.argv[0]} <n>. Onde n e o numero de processos a serem rodados.\n")
     sys.exit(1)
 
-executable_path = "./client"  # Replace with the actual path to your C executable
-file_path = './resultado.txt'  # Replace with the actual path to your text file
+executable = "client.py"  # Replace with the actual path to your C executable
+file_path = './results.txt'  # Replace with the actual path to your text file
 n = int(sys.argv[1])  # Number of times to execute the executable
 r = 10
 
@@ -46,7 +46,11 @@ def timestamp_to_milliseconds(timestamp):
 # Execute the C executable N times sequentially
 processes = []
 for _ in range(n):
-    process = subprocess.Popen([executable_path])
+    try:
+        process = subprocess.Popen(["python3", executable], )
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing {executable}: {e}")
+
     print(f"process no. {_ + 1} running\n")
     processes.append(process)
 

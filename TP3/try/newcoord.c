@@ -97,9 +97,9 @@ void grant_lock(struct Request request) {
 
 void* moveQueue() {
     while (true){
-    if (!isQueueEmpty()) {
-        grant_lock(requestQueue[0]);
-    }
+        if (!isQueueEmpty()) {
+            grant_lock(requestQueue[0]);
+        }
     }
 }
 
@@ -119,7 +119,7 @@ void* handle_client(void* arg) {
         int num = strncmp(buffer, test, 1);
         if (strncmp(buffer, test, 1) == 0) { 
             enqueueRequest(request);
-        }
+        } 
         
     }
 }

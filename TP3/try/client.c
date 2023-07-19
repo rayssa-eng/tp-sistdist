@@ -23,6 +23,8 @@ struct sockaddr_in servaddr, cli;
 
 void my_run();
 int get_access();
+double get_elapsed_time(const char* filename);
+
 
 int main() {
     myId = getpid();
@@ -41,8 +43,7 @@ int main() {
     strcat(grant_id, id);
     strcat(release_id, id);
     
-    //printf("id: %s, request: %s, grant: %s, release: %s \n",id,request_id,grant_id,release_id);
-
+    
     socklen_t len = sizeof(servaddr);
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket creation failed");
@@ -61,6 +62,9 @@ int main() {
     
     my_run();
     
+    double elapsed_time = get_elapsed_time("resultado.txt");
+    printf("Elapsed time: %.2f seconds\n", elapsed_time);
+
     return 0;
 }
 
@@ -92,12 +96,53 @@ int get_access() {
     }
 }
 
+double get_elapsed_time(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    char line[MAXLINE];
+    char first_timestamp[MAXLINE];
+    char last_timestamp[MAXLINE];
+    int line_count = 0;
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        line_count++;
+        if (line_count == 1) {
+            strcpy(first_timestamp, line);
+        }
+        strcpy(last_timestamp, line);
+    }
+
+    fclose(file);
+
+    // Extract the timestamps from the lines
+    char* first_timestamp_value = strchr(first_timestamp, ' ') + 1;
+    char* last_timestamp_value = strchr(last_timestamp, ' ') + 1;
+
+    struct tm tm_first;
+    struct tm tm_last;
+    strptime(first_timestamp_value, "%a %b %d %H:%M:%S:", &tm_first);
+    strptime(last_timestamp_value, "%a %b %d %H:%M:%S:", &tm_last);
+    time_t time_first = mktime(&tm_first);
+    time_t time_last = mktime(&tm_last);
+
+    double elapsed_time = difftime(time_last, time_first);
+    return elapsed_time;
+}
+
 void my_run() {
     int i = 0;
     FILE *myFile;
     char release_id[SIZE]; // Declaração adicionada aqui
     strcpy(release_id, "3");
-    strcat(release_id, id);   
+    strcat(release_id, id);  
+
+    // Record the start time
+    time_t start_time;
+    time(&start_time); 
 
     socklen_t len = sizeof(servaddr);
     while (i < r) {
@@ -126,4 +171,11 @@ void my_run() {
             //printf("i = %d, r = %d \n", i,r);
         }
     }
+
+    time_t end_time;
+    time(&end_time);
+
+    // Calculate the elapsed time
+    double elapsed_time = difftime(end_time, start_time);
+    printf("Elapsed time: %.2f seconds\n", elapsed_time);
 }
